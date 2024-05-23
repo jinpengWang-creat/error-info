@@ -32,7 +32,7 @@ where
         let mut hasher = DefaultHasher::new();
         server_msg.hash(&mut hasher);
         let hash = hasher.finish();
-        let hash = URL_SAFE_NO_PAD.encode(&hash.to_be_bytes());
+        let hash = URL_SAFE_NO_PAD.encode(hash.to_be_bytes());
 
         Self {
             app_code: T::from_str(app_code).expect("can't convert to app code"),
@@ -49,7 +49,7 @@ impl<T> ErrorInfo<T> {
         if self.client_msg.is_empty() {
             &self.server_msg
         } else {
-            &self.client_msg
+            self.client_msg
         }
     }
 }
