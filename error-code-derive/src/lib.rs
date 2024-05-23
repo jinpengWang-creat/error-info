@@ -11,7 +11,7 @@ pub fn derive_to_error_info(input: TokenStream) -> TokenStream {
 }
 
 use darling::{
-    ast::{Data, Fields},
+    ast::{Data, Fields, Style},
     util::Ignored,
     FromDeriveInput, FromField, FromMeta, FromMetaItem, FromVariant,
 };
@@ -55,14 +55,19 @@ fn process_to_error_info(input: DeriveInput) -> TokenStream {
         .map(|var| {
             let ErrorInfoVariant {
                 ident: var,
-                fields: _,
+                fields,
                 code,
                 app_code,
                 client_msg,
             } = var;
             let code = format!("{}{}", prefix, code);
+            let match_code = match fields.style {
+                Style::Struct => quote! { #ident::#var {..} },
+                Style::Tuple => quote! {#ident::#var(_)},
+                Style::Unit => quote! {#ident::#var},
+            };
             quote! {
-                #ident::#var(_) => ErrorInfo::try_new(#app_code, #code, #client_msg, format!("{}", self))
+                #match_code => ErrorInfo::new(#app_code, #code, #client_msg, format!("{}", self))
             }
         })
         .collect();
@@ -71,7 +76,7 @@ fn process_to_error_info(input: DeriveInput) -> TokenStream {
         impl #generics ToErrorInfo for #ident #generics {
             type T = #app_type;
 
-            fn to_error_info(&self) -> Result<ErrorInfo<Self::T>, <Self::T as std::str::FromStr>::Err> {
+            fn to_error_info(&self) -> ErrorInfo<Self::T> {
                 match self {
                     #(#codes),*
                 }
