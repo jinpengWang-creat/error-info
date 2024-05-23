@@ -1,8 +1,9 @@
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 pub use error_code_derive::ToErrorInfo;
 use std::{
+    collections::hash_map::DefaultHasher,
     fmt::{Debug, Display},
-    hash::{DefaultHasher, Hash, Hasher},
+    hash::{Hash, Hasher},
     str::FromStr,
 };
 pub trait ToErrorInfo {
